@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clinical Profile</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .back-link {
+            display: inline-block;
+            color: white;
+            text-decoration: none;
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+
+        .back-link:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .risk-card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .risk-score {
+            font-size: 48px;
+            font-weight: bold;
+            color: #667eea;
+            margin: 10px 0;
+        }
+
+        .risk-level {
+            display: inline-block;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+        .risk-level.low {
+            background: #4caf50;
+            color: white;
+        }
+
+        .risk-level.moderate {
+            background: #ff9800;
+            color: white;
+        }
+
+        .risk-level.high {
+            background: #f44336;
+            color: white;
+        }
+
+        .risk-level.very-high {
+            background: #c62828;
+            color: white;
+        }
+
+        .form-card {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .form-section {
+            margin-bottom: 30px;
+        }
+
+        .form-section h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 18px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 5px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group select {
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+
+        .checkbox-group label {
+            cursor: pointer;
+            margin-bottom: 0 !important;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .btn-secondary {
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #d0d0d0;
+        }
+
+        .risk-factors-card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .risk-factors-card h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .factors-list {
+            list-style: none;
+        }
+
+        .factors-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+            color: #f44336;
+        }
+
+        .factors-list li:last-child {
+            border-bottom: none;
+        }
+
+        .factors-list.protective li {
+            color: #4caf50;
+        }
+
+        .message {
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .helper-text {
+            font-size: 12px;
+            color: #666;
+            margin-top: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/" class="back-link">← Back to Dashboard</a>
+
+        <div class="header">
+            <h1>🏥 Clinical Profile</h1>
+            <p>Enter your medical information to calculate cardiac risk</p>
+        </div>
+
+        <div id="message" class="message"></div>
+
+        <!-- Current Risk Display -->
+        <div class="risk-card">
+            <h3 style="color: #666; font-size: 14px; margin-bottom: 10px;">CLINICAL RISK SCORE</h3>
+            <div class="risk-score" id="riskScore">--</div>
+            <div class="risk-level low" id="riskLevel">NOT CALCULATED</div>
+            <p style="margin-top: 15px; color: #666; font-size: 13px;" id="lastUpdate">Never updated</p>
+        </div>
+
+        <!-- Clinical Profile Form -->
+        <div class="form-card">
+            <form id="clinicalForm">
+                <!-- Demographics -->
+                <div class="form-section">
+                    <h3>Demographics</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="age">Age (years) *</label>
+                            <input type="number" id="age" name="age" min="18" max="120" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="sex">Sex *</label>
+                            <select id="sex" name="sex" required>
+                                <option value="">Select...</option>
+                                <option value="0">Female</option>
+                                <option value="1">Male</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="BMI">BMI (kg/m²) *</label>
+                            <input type="number" id="BMI" name="BMI" step="0.1" min="10" max="60" required>
+                            <span class="helper-text">Weight (kg) / Height (m)²</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Vital Signs -->
+                <div class="form-section">
+                    <h3>Blood Pressure</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="SBP">Systolic BP (mmHg) *</label>
+                            <input type="number" id="SBP" name="SBP" min="70" max="250" required>
+                            <span class="helper-text">Top number</span>
+                        </div>
+                        <div class="form-group">
+                            <label for="DBP">Diastolic BP (mmHg) *</label>
+                            <input type="number" id="DBP" name="DBP" min="40" max="150" required>
+                            <span class="helper-text">Bottom number</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lab Values -->
+                <div class="form-section">
+                    <h3>Cholesterol Levels</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="total_cholesterol">Total Cholesterol (mg/dL) *</label>
+                            <input type="number" id="total_cholesterol" name="total_cholesterol" min="100" max="400" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="HDL">HDL Cholesterol (mg/dL) *</label>
+                            <input type="number" id="HDL" name="HDL" min="10" max="150" required>
+                            <span class="helper-text">"Good" cholesterol</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Medical Conditions -->
+                <div class="form-section">
+                    <h3>Medical Conditions</h3>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="diabetes" name="diabetes" value="1">
+                        <label for="diabetes">Diabetes</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="smoker" name="smoker" value="1">
+                        <label for="smoker">Current Smoker</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="hypertension" name="hypertension" value="1">
+                        <label for="hypertension">Hypertension (High Blood Pressure)</label>
+                    </div>
+                </div>
+
+                <!-- Medications -->
+                <div class="form-section">
+                    <h3>Current Medications</h3>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="on_beta_blocker" name="on_beta_blocker" value="1">
+                        <label for="on_beta_blocker">Beta Blocker (e.g., Metoprolol, Atenolol)</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="on_antihypertensive" name="on_antihypertensive" value="1">
+                        <label for="on_antihypertensive">Antihypertensive (ACE inhibitor, ARB)</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="on_statin" name="on_statin" value="1">
+                        <label for="on_statin">Statin (e.g., Atorvastatin, Simvastatin)</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="on_anticoagulant" name="on_anticoagulant" value="1">
+                        <label for="on_anticoagulant">Anticoagulant (e.g., Warfarin, Aspirin)</label>
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button type="button" class="btn-secondary" onclick="loadProfile()">Reset to Saved</button>
+                    <button type="submit" class="btn-primary">Calculate Risk</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Risk Factors Display -->
+        <div class="risk-factors-card" id="riskFactorsCard" style="display: none;">
+            <h3>⚠️ Identified Risk Factors</h3>
+            <ul class="factors-list" id="riskFactorsList"></ul>
+
+            <h3 style="margin-top: 20px;">✅ Protective Factors</h3>
+            <ul class="factors-list protective" id="protectiveFactorsList"></ul>
+        </div>
+    </div>
+
+    <script>
+        // Load profile on page load
+        window.addEventListener('load', loadProfile);
+
+        async function loadProfile() {
+            try {
+                const response = await fetch('/api/clinical/profile');
+                const data = await response.json();
+
+                // Update risk display
+                if (data.profile_complete) {
+                    document.getElementById('riskScore').textContent = (data.clinical_risk * 100).toFixed(0) + '%';
+                    updateRiskLevel(data.clinical_risk);
+                    
+                    if (data.last_update) {
+                        const date = new Date(data.last_update);
+                        document.getElementById('lastUpdate').textContent = 
+                            'Last updated: ' + date.toLocaleString();
+                    }
+
+                    // Load risk factors
+                    const factorsResponse = await fetch('/api/clinical/risk_factors');
+                    const factors = await factorsResponse.json();
+                    displayRiskFactors(factors);
+                }
+
+                // Populate form
+                const profile = data.profile;
+                document.getElementById('age').value = profile.age || '';
+                document.getElementById('sex').value = profile.sex === 'Male' ? '1' : profile.sex === 'Female' ? '0' : '';
+                document.getElementById('BMI').value = profile.BMI || '';
+                document.getElementById('SBP').value = profile.SBP || '';
+                document.getElementById('DBP').value = profile.DBP || '';
+                document.getElementById('total_cholesterol').value = profile.total_cholesterol || '';
+                document.getElementById('HDL').value = profile.HDL || '';
+                
+                document.getElementById('diabetes').checked = profile.diabetes;
+                document.getElementById('smoker').checked = profile.smoker;
+                document.getElementById('hypertension').checked = profile.hypertension;
+                
+                document.getElementById('on_beta_blocker').checked = profile.medications.beta_blocker;
+                document.getElementById('on_antihypertensive').checked = profile.medications.antihypertensive;
+                document.getElementById('on_statin').checked = profile.medications.statin;
+                document.getElementById('on_anticoagulant').checked = profile.medications.anticoagulant;
+
+            } catch (error) {
+                console.error('Error loading profile:', error);
+            }
+        }
+
+        function updateRiskLevel(riskScore) {
+            const levelEl = document.getElementById('riskLevel');
+            let level, className;
+
+            if (riskScore < 0.3) {
+                level = 'LOW RISK';
+                className = 'low';
+            } else if (riskScore < 0.6) {
+                level = 'MODERATE RISK';
+                className = 'moderate';
+            } else if (riskScore < 0.8) {
+                level = 'HIGH RISK';
+                className = 'high';
+            } else {
+                level = 'VERY HIGH RISK';
+                className = 'very-high';
+            }
+
+            levelEl.textContent = level;
+            levelEl.className = 'risk-level ' + className;
+        }
+
+        function displayRiskFactors(factors) {
+            const card = document.getElementById('riskFactorsCard');
+            const riskList = document.getElementById('riskFactorsList');
+            const protectiveList = document.getElementById('protectiveFactorsList');
+
+            if (factors.risk_factors.length === 0 && factors.protective_factors.length === 0) {
+                card.style.display = 'none';
+                return;
+            }
+
+            card.style.display = 'block';
+
+            riskList.innerHTML = factors.risk_factors.length > 0
+                ? factors.risk_factors.map(f => `<li>⚠️ ${f}</li>`).join('')
+                : '<li style="color: #4caf50;">No major risk factors identified</li>';
+
+            protectiveList.innerHTML = factors.protective_factors.length > 0
+                ? factors.protective_factors.map(f => `<li>✓ ${f}</li>`).join('')
+                : '<li style="color: #999;">No protective factors identified</li>';
+        }
+
+        document.getElementById('clinicalForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = new FormData(e.target);
+            const data = {};
+
+            // Get all form values
+            for (let [key, value] of formData.entries()) {
+                if (value === 'on') {
+                    data[key] = 1;
+                } else if (value !== '') {
+                    data[key] = isNaN(value) ? value : parseFloat(value);
+                }
+            }
+
+            // Set unchecked checkboxes to 0
+            ['diabetes', 'smoker', 'hypertension', 'on_beta_blocker', 
+             'on_antihypertensive', 'on_statin', 'on_anticoagulant'].forEach(field => {
+                if (!(field in data)) {
+                    data[field] = 0;
+                }
+            });
+
+            try {
+                const response = await fetch('/api/clinical/update', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showMessage('Profile updated successfully! Risk calculated.', 'success');
+                    
+                    // Update display
+                    const riskScore = result.clinical_output.clinical_risk;
+                    document.getElementById('riskScore').textContent = (riskScore * 100).toFixed(0) + '%';
+                    updateRiskLevel(riskScore);
+                    document.getElementById('lastUpdate').textContent = 'Last updated: ' + new Date().toLocaleString();
+
+                    // Reload risk factors
+                    const factorsResponse = await fetch('/api/clinical/risk_factors');
+                    const factors = await factorsResponse.json();
+                    displayRiskFactors(factors);
+                } else {
+                    showMessage('Error: ' + result.error, 'error');
+                }
+            } catch (error) {
+                showMessage('Failed to update profile: ' + error.message, 'error');
+            }
+        });
+
+        function showMessage(text, type) {
+            const msg = document.getElementById('message');
+            msg.textContent = text;
+            msg.className = 'message ' + type;
+            msg.style.display = 'block';
+
+            setTimeout(() => {
+                msg.style.display = 'none';
+            }, 5000);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alert History</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .back-link {
+            display: inline-block;
+            color: white;
+            text-decoration: none;
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+
+        .back-link:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .stat-value {
+            font-size: 36px;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: #666;
+            text-transform: uppercase;
+        }
+
+        .alert-card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 15px;
+            border-left: 5px solid #f44336;
+            transition: transform 0.2s;
+        }
+
+        .alert-card:hover {
+            transform: translateX(5px);
+        }
+
+        .alert-card.monitor {
+            border-left-color: #ff9800;
+        }
+
+        .alert-card.acknowledged {
+            opacity: 0.6;
+            border-left-color: #999;
+        }
+
+        .alert-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .alert-decision {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 15px;
+            font-size: 13px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .alert-decision.ALERT {
+            background: #f44336;
+            color: white;
+        }
+
+        .alert-decision.MONITOR {
+            background: #ff9800;
+            color: white;
+        }
+
+        .alert-time {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .alert-risk {
+            font-size: 28px;
+            font-weight: bold;
+            color: #f44336;
+            margin-bottom: 10px;
+        }
+
+        .alert-explanation {
+            font-size: 14px;
+            line-height: 1.6;
+            color: #333;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+
+        .alert-components {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            font-size: 13px;
+        }
+
+        .component {
+            padding: 8px 12px;
+            background: #e3f2fd;
+            border-radius: 5px;
+        }
+
+        .component strong {
+            color: #667eea;
+        }
+
+        .alert-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-acknowledge {
+            background: #4caf50;
+            color: white;
+        }
+
+        .btn-acknowledge:hover {
+            background: #45a049;
+        }
+
+        .btn-acknowledge:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .empty-state {
+            background: white;
+            padding: 60px;
+            border-radius: 10px;
+            text-align: center;
+            color: #999;
+        }
+
+        .empty-state h3 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .status-indicator {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .status-indicator h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+        }
+
+        .status-item {
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+
+        .status-item strong {
+            color: #667eea;
+        }
+
+        .cooldown-indicator {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .cooldown-indicator strong {
+            color: #856404;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/" class="back-link">← Back to Dashboard</a>
+
+        <div class="header">
+            <h1>🚨 Alert History</h1>
+            <p>View and manage cardiac risk alerts</p>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" id="totalAlerts">0</div>
+                <div class="stat-label">Total Alerts</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="totalMonitors">0</div>
+                <div class="stat-label">Monitor Events</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="consecutiveAlert">0</div>
+                <div class="stat-label">Consecutive High Risk</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="consecutiveMonitor">0</div>
+                <div class="stat-label">Consecutive Elevated</div>
+            </div>
+        </div>
+
+        <!-- Cooldown Indicator -->
+        <div id="cooldownIndicator" class="cooldown-indicator" style="display: none;">
+            <strong>⏱️ Alert System in Cooldown</strong>
+            <p id="cooldownText"></p>
+        </div>
+
+        <!-- Current Status -->
+        <div class="status-indicator">
+            <h3>Current System Status</h3>
+            <div class="status-grid">
+                <div class="status-item">
+                    <strong>Last Decision:</strong> <span id="lastDecision">--</span>
+                </div>
+                <div class="status-item">
+                    <strong>Global Risk:</strong> <span id="lastRisk">--</span>
+                </div>
+                <div class="status-item">
+                    <strong>Alert History:</strong> <span id="historyCount">0</span> records
+                </div>
+            </div>
+        </div>
+
+        <!-- Alert List -->
+        <div id="alertsList"></div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="empty-state" style="display: none;">
+            <h3>✅ No Alerts</h3>
+            <p>No cardiac risk alerts have been triggered. Continue monitoring.</p>
+        </div>
+    </div>
+
+    <script>
+        async function loadAlerts() {
+            try {
+                // Get current status
+                const statusResponse = await fetch('/api/decision/current');
+                const status = await statusResponse.json();
+
+                document.getElementById('totalAlerts').textContent = status.total_alerts;
+                document.getElementById('totalMonitors').textContent = status.total_monitors;
+                document.getElementById('consecutiveAlert').textContent = status.consecutive_alert;
+                document.getElementById('consecutiveMonitor').textContent = status.consecutive_monitor;
+                document.getElementById('historyCount').textContent = status.alert_history_count;
+
+                if (status.last_decision) {
+                    document.getElementById('lastDecision').textContent = status.last_decision.decision;
+                    document.getElementById('lastRisk').textContent = 
+                        (status.last_decision.global_risk * 100).toFixed(0) + '%';
+                }
+
+                // Cooldown indicator
+                if (status.in_cooldown) {
+                    const cooldownDiv = document.getElementById('cooldownIndicator');
+                    cooldownDiv.style.display = 'block';
+                    document.getElementById('cooldownText').textContent = 
+                        `Next alert possible in ${Math.ceil(status.time_until_ready_minutes)} minutes to prevent alert fatigue.`;
+                } else {
+                    document.getElementById('cooldownIndicator').style.display = 'none';
+                }
+
+                // Get alert history
+                const alertsResponse = await fetch('/api/decision/alerts?limit=50');
+                const alertsData = await alertsResponse.json();
+                
+                displayAlerts(alertsData.alerts);
+
+            } catch (error) {
+                console.error('Error loading alerts:', error);
+            }
+        }
+
+        function displayAlerts(alerts) {
+            const container = document.getElementById('alertsList');
+            const emptyState = document.getElementById('emptyState');
+
+            if (!alerts || alerts.length === 0) {
+                container.innerHTML = '';
+                emptyState.style.display = 'block';
+                return;
+            }
+
+            emptyState.style.display = 'none';
+            
+            // Sort by timestamp descending (newest first)
+            alerts.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+            container.innerHTML = alerts.map(alert => {
+                const date = new Date(alert.timestamp);
+                const isAcknowledged = alert.acknowledged;
+                const cardClass = `alert-card ${alert.decision.toLowerCase()} ${isAcknowledged ? 'acknowledged' : ''}`;
+
+                return `
+                    <div class="${cardClass}">
+                        <div class="alert-header">
+                            <div>
+                                <span class="alert-decision ${alert.decision}">${alert.decision}</span>
+                                ${isAcknowledged ? '<span style="margin-left: 10px; color: #4caf50;">✓ Acknowledged</span>' : ''}
+                            </div>
+                            <div class="alert-time">
+                                ${date.toLocaleString()}
+                            </div>
+                        </div>
+                        
+                        <div class="alert-risk">Global Risk: ${(alert.global_risk * 100).toFixed(0)}%</div>
+                        
+                        <div class="alert-explanation">
+                            ${alert.explanation}
+                        </div>
+                        
+                        <div class="alert-components">
+                            <div class="component">
+                                <strong>Sensor Risk:</strong> ${(alert.components.sensor_risk * 100).toFixed(0)}%
+                            </div>
+                            <div class="component">
+                                <strong>Sensitivity:</strong> ${alert.components.patient_sensitivity.toFixed(2)}x
+                            </div>
+                            <div class="component">
+                                <strong>Clinical Risk:</strong> ${(alert.components.clinical_risk * 100).toFixed(0)}%
+                            </div>
+                        </div>
+                        
+                        ${!isAcknowledged && alert.decision === 'ALERT' ? `
+                            <div class="alert-actions">
+                                <button class="btn-acknowledge" onclick="acknowledgeAlert(${alert.alert_id})">
+                                    ✓ Acknowledge
+                                </button>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function acknowledgeAlert(alertId) {
+            try {
+                const response = await fetch(`/api/decision/acknowledge/${alertId}`, {
+                    method: 'POST'
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    loadAlerts(); // Reload to show acknowledged state
+                }
+            } catch (error) {
+                console.error('Error acknowledging alert:', error);
+            }
+        }
+
+        // Load alerts on page load and refresh every 5 seconds
+        window.addEventListener('load', loadAlerts);
+        setInterval(loadAlerts, 5000);
+    </script>
+</body>
+</html>

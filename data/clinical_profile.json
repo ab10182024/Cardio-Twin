@@ -1,0 +1,21 @@
+{
+  "patient_id": "patient_001",
+  "created_date": "2025-12-28T13:53:51.092332",
+  "last_update": "2025-12-28T14:14:07.999015",
+  "clinical_risk": 0.07440122382623643,
+  "profile_complete": true,
+  "age": 82,
+  "sex": 1,
+  "BMI": 33,
+  "SBP": 180,
+  "DBP": 110,
+  "total_cholesterol": 280,
+  "HDL": 30,
+  "diabetes": 1,
+  "smoker": 1,
+  "hypertension": 1,
+  "on_beta_blocker": 0,
+  "on_antihypertensive": 0,
+  "on_statin": 0,
+  "on_anticoagulant": 0
+}

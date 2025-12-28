@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arduino Sensor Dashboard with AI</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .status-bar {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-dot {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background: #ccc;
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.connected {
+            background: #4caf50;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .controls button {
+            padding: 10px 20px;
+            margin-left: 10px;
+            border: none;
+            border-radius: 5px;
+            background: #667eea;
+            color: white;
+            cursor: pointer;
+            transition: background 0.3s;
+            font-size: 14px;
+        }
+
+        .controls button:hover {
+            background: #5568d3;
+        }
+
+        .predictions-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .prediction-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .prediction-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .prediction-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .prediction-subtext {
+            font-size: 12px;
+            color: #999;
+        }
+
+        .activity-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 16px;
+            font-weight: bold;
+            color: white;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .confidence-bar {
+            width: 100%;
+            height: 8px;
+            background: #eee;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4caf50, #8bc34a);
+            transition: width 0.3s;
+        }
+
+        .irregular-flag {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .irregular-flag.normal {
+            background: #4caf50;
+            color: white;
+        }
+
+        .irregular-flag.irregular {
+            background: #f44336;
+            color: white;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .chart-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .chart-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #667eea;
+        }
+
+        .values-display {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .value-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .value-row:last-child {
+            border-bottom: none;
+        }
+
+        .value-label {
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .value-data {
+            font-family: 'Courier New', monospace;
+            color: #333;
+        }
+
+        .quality-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .quality-bar {
+            flex: 1;
+            height: 6px;
+            background: #eee;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .quality-fill {
+            height: 100%;
+            transition: width 0.3s;
+        }
+
+        .quality-fill.good {
+            background: #4caf50;
+        }
+
+        .quality-fill.medium {
+            background: #ff9800;
+        }
+
+        .quality-fill.poor {
+            background: #f44336;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🫀 AI-Powered Sensor Dashboard - AD8232 & MPU6050</h1>
+        
+        <div class="status-bar">
+            <div class="status-indicator">
+                <div class="status-dot" id="statusDot"></div>
+                <span id="statusText">Connecting...</span>
+            </div>
+            <div class="controls">
+                <button onclick="window.location.href='/alerts'">🚨 Alerts</button>
+                <button onclick="window.location.href='/clinical'">⚕️ Clinical Profile</button>
+                <button onclick="clearData()">Clear Data</button>
+                <button onclick="toggleUpdates()" id="toggleBtn">Pause</button>
+            </div>
+        </div>
+
+        <!-- Alert Banner -->
+        <div id="alertBanner" style="display: none; background: #f44336; color: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; text-align: center; font-size: 18px; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1); animation: pulse 2s infinite;">
+            <span id="alertBannerText"></span>
+        </div>
+
+        <!-- AI Predictions -->
+        <div class="predictions-bar">
+            <div class="prediction-card">
+                <div class="prediction-label">Current Activity</div>
+                <div class="prediction-value">
+                    <span class="activity-badge" id="activityName">UNKNOWN</span>
+                </div>
+                <div class="confidence-bar">
+                    <div class="confidence-fill" id="activityConfidence" style="width: 0%"></div>
+                </div>
+                <div class="prediction-subtext" id="confidenceText">0% confidence</div>
+            </div>
+
+            <div class="prediction-card">
+                <div class="prediction-label">Heart Rate</div>
+                <div class="prediction-value" id="heartRate">--</div>
+                <div class="prediction-subtext">BPM</div>
+            </div>
+
+            <div class="prediction-card">
+                <div class="prediction-label">HRV (RMSSD)</div>
+                <div class="prediction-value" id="hrvRmssd">--</div>
+                <div class="prediction-subtext">milliseconds</div>
+            </div>
+
+            <div class="prediction-card">
+                <div class="prediction-label">HRV (SDNN)</div>
+                <div class="prediction-value" id="hrvSdnn">--</div>
+                <div class="prediction-subtext">milliseconds</div>
+            </div>
+
+            <div class="prediction-card">
+                <div class="prediction-label">Rhythm Status</div>
+                <div class="prediction-value">
+                    <span class="irregular-flag normal" id="rhythmStatus">NORMAL</span>
+                </div>
+                <div class="prediction-subtext">Heart rhythm</div>
+            </div>
+
+            <div class="prediction-card">
+                <div class="prediction-label">ECG Quality</div>
+                <div class="quality-indicator">
+                    <div class="quality-bar">
+                        <div class="quality-fill good" id="ecgQuality" style="width: 0%"></div>
+                    </div>
+                    <span id="qualityText">0%</span>
+                </div>
+            </div>
+
+            <div class="prediction-card">
+                <div class="prediction-label">Arrhythmia Detection</div>
+                <div class="prediction-value">
+                    <span class="irregular-flag normal" id="arrhythmiaStatus">NORMAL</span>
+                </div>
+                <div class="confidence-bar">
+                    <div class="confidence-fill" id="arrhythmiaConfidence" style="width: 0%; background: linear-gradient(90deg, #f44336, #ff5722);"></div>
+                </div>
+                <div class="prediction-subtext" id="arrhythmiaProb">0% probability</div>
+            </div>
+
+            <div class="prediction-card">
+                <div class="prediction-label">Clinical Risk</div>
+                <div class="prediction-value" id="clinicalRisk">--</div>
+                <div class="prediction-subtext" id="clinicalStatus">Not configured</div>
+            </div>
+
+            <div class="prediction-card">
+                <div class="prediction-label">Global Risk Score</div>
+                <div class="prediction-value" id="globalRisk">--</div>
+                <div class="prediction-subtext">
+                    <span id="decisionStatus" style="font-weight: bold;">NO ALERT</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Patient Baseline Info -->
+        <div class="patient-info">
+            <h3>📊 Patient Baseline Profile</h3>
+            <div style="display: flex; gap: 20px; align-items: center; margin-bottom: 15px;">
+                <div>
+                    <span style="color: #666; font-size: 13px;">Behavioral State:</span>
+                    <span class="state-badge stable" id="patientState">STABLE</span>
+                </div>
+                <div>
+                    <span style="color: #666; font-size: 13px;">Sensitivity:</span>
+                    <span style="font-weight: bold; color: #667eea;" id="sensitivityFactor">1.0x</span>
+                </div>
+                <div>
+                    <span style="color: #666; font-size: 13px;">Confidence:</span>
+                    <span style="font-weight: bold; color: #667eea;" id="patientConfidence">0%</span>
+                </div>
+                <div>
+                    <span style="color: #666; font-size: 13px;">Days Tracked:</span>
+                    <span style="font-weight: bold; color: #667eea;" id="daysSeen">0</span>
+                </div>
+            </div>
+            <div class="baseline-grid">
+                <div class="baseline-item">
+                    <div class="baseline-label">Baseline HR</div>
+                    <div class="baseline-value" id="baselineHR">--</div>
+                </div>
+                <div class="baseline-item">
+                    <div class="baseline-label">Baseline HRV</div>
+                    <div class="baseline-value" id="baselineHRV">--</div>
+                </div>
+                <div class="baseline-item">
+                    <div class="baseline-label">Arrhythmia Rate</div>
+                    <div class="baseline-value" id="baselineArrhythmia">--</div>
+                </div>
+                <div class="baseline-item">
+                    <div class="baseline-label">Physio Risk</div>
+                    <div class="baseline-value" id="baselineRisk">--</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid">
+            <div class="chart-container">
+                <div class="chart-title">ECG Signal (AD8232)</div>
+                <canvas id="ecgChart"></canvas>
+            </div>
+
+            <div class="chart-container">
+                <div class="chart-title">Accelerometer (MPU6050)</div>
+                <canvas id="accelChart"></canvas>
+            </div>
+
+            <div class="chart-container">
+                <div class="chart-title">Gyroscope (MPU6050)</div>
+                <canvas id="gyroChart"></canvas>
+            </div>
+
+            <div class="values-display">
+                <div class="chart-title">Raw Sensor Values</div>
+                <div class="value-row">
+                    <span class="value-label">ECG:</span>
+                    <span class="value-data" id="ecgValue">-</span>
+                </div>
+                <div class="value-row">
+                    <span class="value-label">Accel X:</span>
+                    <span class="value-data" id="accelX">-</span>
+                </div>
+                <div class="value-row">
+                    <span class="value-label">Accel Y:</span>
+                    <span class="value-data" id="accelY">-</span>
+                </div>
+                <div class="value-row">
+                    <span class="value-label">Accel Z:</span>
+                    <span class="value-data" id="accelZ">-</span>
+                </div>
+                <div class="value-row">
+                    <span class="value-label">Gyro X:</span>
+                    <span class="value-data" id="gyroX">-</span>
+                </div>
+                <div class="value-row">
+                    <span class="value-label">Gyro Y:</span>
+                    <span class="value-data" id="gyroY">-</span>
+                </div>
+                <div class="value-row">
+                    <span class="value-label">Gyro Z:</span>
+                    <span class="value-data" id="gyroZ">-</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let updateInterval;
+        let predictionInterval;
+        let patientInterval;
+        let isUpdating = true;
+
+        const chartConfig = {
+            type: 'line',
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                animation: false,
+                scales: {
+                    x: { display: false },
+                    y: { beginAtZero: false }
+                },
+                plugins: {
+                    legend: { display: true, position: 'top' }
+                }
+            }
+        };
+
+        const ecgChart = new Chart(document.getElementById('ecgChart'), {
+            ...chartConfig,
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'ECG Signal',
+                    data: [],
+                    borderColor: '#e74c3c',
+                    backgroundColor: 'rgba(231, 76, 60, 0.1)',
+                    borderWidth: 2,
+                    tension: 0.4
+                }]
+            }
+        });
+
+        const accelChart = new Chart(document.getElementById('accelChart'), {
+            ...chartConfig,
+            data: {
+                labels: [],
+                datasets: [
+                    {
+                        label: 'X',
+                        data: [],
+                        borderColor: '#3498db',
+                        backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                        borderWidth: 2
+                    },
+                    {
+                        label: 'Y',
+                        data: [],
+                        borderColor: '#2ecc71',
+                        backgroundColor: 'rgba(46, 204, 113, 0.1)',
+                        borderWidth: 2
+                    },
+                    {
+                        label: 'Z',
+                        data: [],
+                        borderColor: '#f39c12',
+                        backgroundColor: 'rgba(243, 156, 18, 0.1)',
+                        borderWidth: 2
+                    }
+                ]
+            }
+        });
+
+        const gyroChart = new Chart(document.getElementById('gyroChart'), {
+            ...chartConfig,
+            data: {
+                labels: [],
+                datasets: [
+                    {
+                        label: 'X',
+                        data: [],
+                        borderColor: '#9b59b6',
+                        backgroundColor: 'rgba(155, 89, 182, 0.1)',
+                        borderWidth: 2
+                    },
+                    {
+                        label: 'Y',
+                        data: [],
+                        borderColor: '#1abc9c',
+                        backgroundColor: 'rgba(26, 188, 156, 0.1)',
+                        borderWidth: 2
+                    },
+                    {
+                        label: 'Z',
+                        data: [],
+                        borderColor: '#e67e22',
+                        backgroundColor: 'rgba(230, 126, 34, 0.1)',
+                        borderWidth: 2
+                    }
+                ]
+            }
+        });
+
+        async function fetchData() {
+            try {
+                const response = await fetch('/api/data');
+                const data = await response.json();
+
+                ecgChart.data.labels = data.timestamps;
+                ecgChart.data.datasets[0].data = data.ecg;
+                ecgChart.update();
+
+                accelChart.data.labels = data.timestamps;
+                accelChart.data.datasets[0].data = data.accel.x;
+                accelChart.data.datasets[1].data = data.accel.y;
+                accelChart.data.datasets[2].data = data.accel.z;
+                accelChart.update();
+
+                gyroChart.data.labels = data.timestamps;
+                gyroChart.data.datasets[0].data = data.gyro.x;
+                gyroChart.data.datasets[1].data = data.gyro.y;
+                gyroChart.data.datasets[2].data = data.gyro.z;
+                gyroChart.update();
+
+                if (data.ecg.length > 0) {
+                    const idx = data.ecg.length - 1;
+                    document.getElementById('ecgValue').textContent = data.ecg[idx].toFixed(2);
+                    document.getElementById('accelX').textContent = data.accel.x[idx].toFixed(2);
+                    document.getElementById('accelY').textContent = data.accel.y[idx].toFixed(2);
+                    document.getElementById('accelZ').textContent = data.accel.z[idx].toFixed(2);
+                    document.getElementById('gyroX').textContent = data.gyro.x[idx].toFixed(2);
+                    document.getElementById('gyroY').textContent = data.gyro.y[idx].toFixed(2);
+                    document.getElementById('gyroZ').textContent = data.gyro.z[idx].toFixed(2);
+                }
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
+        }
+
+        async function fetchPredictions() {
+            try {
+                const response = await fetch('/api/predictions');
+                const pred = await response.json();
+
+                // Activity
+                document.getElementById('activityName').textContent = pred.activity;
+                const confidence = Math.round(pred.activity_confidence * 100);
+                document.getElementById('activityConfidence').style.width = confidence + '%';
+                document.getElementById('confidenceText').textContent = confidence + '% confidence';
+
+                // Heart Rate
+                document.getElementById('heartRate').textContent = 
+                    pred.heart_rate > 0 ? Math.round(pred.heart_rate) : '--';
+
+                // HRV
+                document.getElementById('hrvRmssd').textContent = 
+                    pred.hrv_rmssd > 0 ? pred.hrv_rmssd.toFixed(1) : '--';
+                document.getElementById('hrvSdnn').textContent = 
+                    pred.hrv_sdnn > 0 ? pred.hrv_sdnn.toFixed(1) : '--';
+
+                // Rhythm Status
+                const rhythmEl = document.getElementById('rhythmStatus');
+                if (pred.rhythm_irregular) {
+                    rhythmEl.textContent = 'IRREGULAR';
+                    rhythmEl.className = 'irregular-flag irregular';
+                } else {
+                    rhythmEl.textContent = 'NORMAL';
+                    rhythmEl.className = 'irregular-flag normal';
+                }
+
+                // ECG Quality
+                const quality = Math.round(pred.ecg_quality * 100);
+                const qualityFill = document.getElementById('ecgQuality');
+                qualityFill.style.width = quality + '%';
+                document.getElementById('qualityText').textContent = quality + '%';
+                
+                if (quality >= 70) {
+                    qualityFill.className = 'quality-fill good';
+                } else if (quality >= 40) {
+                    qualityFill.className = 'quality-fill medium';
+                } else {
+                    qualityFill.className = 'quality-fill poor';
+                }
+
+                // Arrhythmia Detection (CNN Model)
+                const arrhythmiaProb = pred.arrhythmia_probability || 0;
+                const arrhythmiaDetected = pred.arrhythmia_detected || false;
+                
+                const arrhythmiaStatus = document.getElementById('arrhythmiaStatus');
+                const arrhythmiaConf = document.getElementById('arrhythmiaConfidence');
+                const arrhythmiaText = document.getElementById('arrhythmiaProb');
+                
+                const probPercent = Math.round(arrhythmiaProb * 100);
+                arrhythmiaConf.style.width = probPercent + '%';
+                arrhythmiaText.textContent = probPercent + '% probability';
+                
+                if (arrhythmiaDetected) {
+                    arrhythmiaStatus.textContent = 'DETECTED';
+                    arrhythmiaStatus.className = 'irregular-flag irregular';
+                } else {
+                    arrhythmiaStatus.textContent = 'NORMAL';
+                    arrhythmiaStatus.className = 'irregular-flag normal';
+                }
+
+                // Global Risk and Decision
+                const globalRisk = pred.global_risk || 0;
+                const decision = pred.decision || 'NO_ALERT';
+                
+                document.getElementById('globalRisk').textContent = Math.round(globalRisk * 100) + '%';
+                
+                const decisionEl = document.getElementById('decisionStatus');
+                decisionEl.textContent = decision;
+                
+                if (decision === 'ALERT') {
+                    decisionEl.style.color = '#f44336';
+                    showAlertBanner(pred.decision_explanation);
+                } else if (decision === 'MONITOR') {
+                    decisionEl.style.color = '#ff9800';
+                    hideAlertBanner();
+                } else {
+                    decisionEl.style.color = '#4caf50';
+                    hideAlertBanner();
+                }
+
+            } catch (error) {
+                console.error('Error fetching predictions:', error);
+            }
+        }
+
+        async function fetchPatientState() {
+            try {
+                // Get patient state
+                const stateResponse = await fetch('/api/patient/state');
+                const state = await stateResponse.json();
+                
+                // Update state display
+                const stateEl = document.getElementById('patientState');
+                stateEl.textContent = state.behavioral_state;
+                stateEl.className = 'state-badge ' + state.behavioral_state.toLowerCase().replace('_', '-');
+                
+                document.getElementById('sensitivityFactor').textContent = state.sensitivity_factor.toFixed(2) + 'x';
+                document.getElementById('patientConfidence').textContent = Math.round(state.confidence * 100) + '%';
+                document.getElementById('daysSeen').textContent = state.days_seen;
+                
+                // Get baseline
+                const baselineResponse = await fetch('/api/patient/baseline');
+                const baseline = await baselineResponse.json();
+                
+                document.getElementById('baselineHR').textContent = baseline.baseline.hr_mean.toFixed(0);
+                document.getElementById('baselineHRV').textContent = baseline.baseline.hrv_rmssd_mean.toFixed(1);
+                document.getElementById('baselineArrhythmia').textContent = (baseline.baseline.arrhythmia_rate * 100).toFixed(1) + '%';
+                document.getElementById('baselineRisk').textContent = (baseline.baseline.physio_risk_mean * 100).toFixed(0) + '%';
+                
+                // Get clinical risk
+                const clinicalResponse = await fetch('/api/clinical/profile');
+                const clinical = await clinicalResponse.json();
+                
+                if (clinical.profile_complete) {
+                    document.getElementById('clinicalRisk').textContent = Math.round(clinical.clinical_risk * 100) + '%';
+                    document.getElementById('clinicalStatus').textContent = 'Static risk score';
+                } else {
+                    document.getElementById('clinicalRisk').textContent = '--';
+                    document.getElementById('clinicalStatus').textContent = 'Click "Clinical Profile" to configure';
+                }
+                
+            } catch (error) {
+                console.error('Error fetching patient state:', error);
+            }
+        }
+
+        async function checkStatus() {
+            try {
+                const response = await fetch('/api/status');
+                const status = await response.json();
+                
+                const statusDot = document.getElementById('statusDot');
+                const statusText = document.getElementById('statusText');
+                
+                if (status.connected) {
+                    statusDot.classList.add('connected');
+                    const activityStatus = status.activity_model_loaded ? '✓' : '✗';
+                    const ecgStatus = status.ecg_model_loaded ? '✓' : '✗';
+                    statusText.textContent = `Connected - ${status.data_points} points | Activity ${activityStatus} | ECG CNN ${ecgStatus}`;
+                } else {
+                    statusDot.classList.remove('connected');
+                    statusText.textContent = 'Disconnected';
+                }
+            } catch (error) {
+                console.error('Error checking status:', error);
+            }
+        }
+
+        async function clearData() {
+            await fetch('/api/clear');
+            fetchData();
+        }
+
+        function toggleUpdates() {
+            isUpdating = !isUpdating;
+            const btn = document.getElementById('toggleBtn');
+            
+            if (isUpdating) {
+                btn.textContent = 'Pause';
+                updateInterval = setInterval(fetchData, 100);
+                predictionInterval = setInterval(fetchPredictions, 1000);
+                patientInterval = setInterval(fetchPatientState, 5000);
+            } else {
+                btn.textContent = 'Resume';
+                clearInterval(updateInterval);
+                clearInterval(predictionInterval);
+                clearInterval(patientInterval);
+            }
+        }
+
+        // Start updates
+        updateInterval = setInterval(fetchData, 100);
+        predictionInterval = setInterval(fetchPredictions, 1000);
+        patientInterval = setInterval(fetchPatientState, 5000);
+        setInterval(checkStatus, 2000);
+        
+        // Initial fetch
+        fetchData();
+        fetchPredictions();
+        fetchPatientState();
+        checkStatus();
+    </script>
+</body>
+</html>
